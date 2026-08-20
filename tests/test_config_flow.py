@@ -40,7 +40,7 @@ class TestAsyncStepUser:
 
     @pytest.mark.asyncio
     async def test_no_devices_found(self, mock_config_flow):
-        """Test when no Cosori kettles are discovered."""
+        """Test when no Cosori kettles are discovered. Falls back to manual entry."""
         with patch(
             "custom_components.cosori_kettle_ble.config_flow.bluetooth.async_discovered_service_info"
         ) as mock_discover:
@@ -48,8 +48,8 @@ class TestAsyncStepUser:
 
             result = await mock_config_flow.async_step_user(user_input=None)
 
-            assert result["type"] == FlowResultType.ABORT
-            assert result["reason"] == "no_devices_found"
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "manual"
 
     @pytest.mark.asyncio
     async def test_devices_discovered(self, mock_config_flow, mock_bluetooth_service_info):
@@ -78,9 +78,10 @@ class TestAsyncStepUser:
 
             result = await mock_config_flow.async_step_user(user_input=None)
 
-            # Device should be filtered out, so no devices found
-            assert result["type"] == FlowResultType.ABORT
-            assert result["reason"] == "no_devices_found"
+            # Device should be filtered out, so no devices found. 
+            # Fall back to manual entry
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "manual"
 
     @pytest.mark.asyncio
     async def test_service_uuid_filtering(self, mock_config_flow):
